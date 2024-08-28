@@ -7,11 +7,15 @@ export default function RegisterForm() {
   const [lname, setLname] = useState("");
   const [lnameError, setLnameError] = useState(false);
   const [plan, setPlan] = useState("");
+  const [planError, setPlanError] = useState(false);
   const [gender, setGender] = useState("");
+  const [genderError, setGenderError] = useState(false);
   const [buyBottle, setBuyBottle] = useState(false);
   const [buyShoes, setBuyShoes] = useState(false);
   const [buyCap, setBuyCap] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [isUserAgreed, setIsUserAgreed] = useState(false);
+
+  // ----------------------------------------------------------------
 
   const inputFnameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFnameError(false);
@@ -24,14 +28,17 @@ export default function RegisterForm() {
   };
 
   const selectPlanOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPlanError(false);
     setPlan(event.target.value);
   };
 
   const radioGenderMaleOnChange = () => {
+    setGenderError(false);
     setGender("male");
   };
 
   const radioGenderFemaleOnChange = () => {
+    setGenderError(false);
     setGender("female");
   };
 
@@ -47,6 +54,12 @@ export default function RegisterForm() {
     setBuyCap(event.target.checked);
   };
 
+  const cbTermsOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsUserAgreed(event.target.checked);
+  };
+
+  // ----------------------------------------------------------------
+
   const computeTotalPayment = () => {
     let total = 0;
     if (plan === "funrun") total += 500;
@@ -57,49 +70,53 @@ export default function RegisterForm() {
     if (buyShoes) total += 600;
     if (buyCap) total += 400;
 
-    // Apply 20% discount if all items are purchased
-    if (buyBottle && buyShoes && buyCap) {
-      total *= 0.8; // Apply 20% discount
-    }
-
     return total;
   };
 
+  const computeDiscountedPayment = () => {
+    const total = computeTotalPayment();
+    return buyBottle && buyShoes && buyCap ? total * 0.8 : total;
+  };
+
+  // ----------------------------------------------------------------
+
   const registerBtnOnClick = () => {
     let fnameOk = true;
-    let lnameOk = true;
-
     if (fname === "") {
       fnameOk = false;
       setFnameError(true);
     }
 
+    let lnameOk = true;
     if (lname === "") {
       lnameOk = false;
       setLnameError(true);
     }
 
-    if (fnameOk && lnameOk && agreedToTerms) {
+    let planOk = true;
+    if (plan === "") {
+      planOk = false;
+      setPlanError(true);
+    }
+
+    let genderOk = true;
+    if (gender === "") {
+      genderOk = false;
+      setGenderError(true);
+    }
+
+    if (fnameOk && lnameOk && planOk && genderOk) {
       alert(
-        `Registration complete. Please pay money for ${computeTotalPayment().toLocaleString()} THB.`
+        `Registration complete. Please pay money for ${computeDiscountedPayment().toLocaleString()} THB.`
       );
     }
-  };
-
-  const isFormValid = () => {
-    return (
-      fname !== "" &&
-      lname !== "" &&
-      plan !== "" &&
-      gender !== "" &&
-      agreedToTerms
-    );
   };
 
   return (
     <div className="mx-auto vstack gap-3" style={{ width: "400px" }}>
       <h3 className="text-center fst-italic my-4">Register CMU Marathon 🏃‍♂️</h3>
-      
+
+      {/* First name & Last name */}
       <div className="d-flex gap-2">
         <div>
           <label className="form-label">First name</label>
@@ -121,10 +138,11 @@ export default function RegisterForm() {
         </div>
       </div>
 
+      {/* Running Plan */}
       <div>
         <label className="form-label">Plan</label>
         <select
-          className="form-select"
+          className={"form-select" + (planError ? " is-invalid" : "")}
           onChange={selectPlanOnChange}
           value={plan}
         >
@@ -137,11 +155,12 @@ export default function RegisterForm() {
         <div className="invalid-feedback">Please select a Plan</div>
       </div>
 
+      {/* Gender */}
       <div>
         <label className="form-label">Gender</label>
         <div>
           <input
-            className="me-2 form-check-input"
+            className="mx-2 form-check-input"
             type="radio"
             onChange={radioGenderMaleOnChange}
             checked={gender === "male"}
@@ -154,9 +173,13 @@ export default function RegisterForm() {
             checked={gender === "female"}
           />
           Female 👩
+          {genderError && (
+            <div className="text-danger">Please select gender</div>
+          )}
         </div>
       </div>
 
+      {/* Extra Items */}
       <div>
         <label className="form-label">Extra Item(s)</label>
         <div>
@@ -192,32 +215,33 @@ export default function RegisterForm() {
         Promotion📢 Buy all items to get 20% Discount
       </div>
 
+      {/* Total Payment */}
       <div>
-        Total Payment : {computeTotalPayment().toLocaleString()} THB
+        Total Payment : {computeDiscountedPayment().toLocaleString()} THB
         {buyBottle && buyShoes && buyCap && (
           <span className="text-success d-block">(20% Discounted)</span>
         )}
       </div>
 
+      {/* Terms and conditions */}
       <div>
         <input
-          className="me-2"
+          className="me-2 form-check-input"
           type="checkbox"
-          checked={agreedToTerms}
-          onChange={(e) => setAgreedToTerms(e.target.checked)}
-        />
+          onChange={cbTermsOnChange}
+          required
+        />{" "}
         I agree to the terms and conditions
       </div>
 
+      {/* Register Button */}
       <button
         className="btn btn-success my-2"
         onClick={registerBtnOnClick}
-        disabled={!isFormValid()}
+        disabled={!isUserAgreed}
       >
         Register
       </button>
     </div>
   );
 }
-
-
