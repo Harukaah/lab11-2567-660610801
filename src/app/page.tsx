@@ -5,13 +5,13 @@ export default function RegisterForm() {
   const [fname, setFname] = useState("");
   const [fnameError, setFnameError] = useState(false);
   const [lname, setLname] = useState("");
+  const [lnameError, setLnameError] = useState(false);
   const [plan, setPlan] = useState("");
   const [gender, setGender] = useState("");
   const [buyBottle, setBuyBottle] = useState(false);
   const [buyShoes, setBuyShoes] = useState(false);
   const [buyCap, setBuyCap] = useState(false);
-
-  // ----------------------------------------------------------------
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const inputFnameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFnameError(false);
@@ -19,6 +19,7 @@ export default function RegisterForm() {
   };
 
   const inputLnameOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setLnameError(false);
     setLname(event.target.value);
   };
 
@@ -46,8 +47,6 @@ export default function RegisterForm() {
     setBuyCap(event.target.checked);
   };
 
-  // ----------------------------------------------------------------
-
   const computeTotalPayment = () => {
     let total = 0;
     if (plan === "funrun") total += 500;
@@ -58,29 +57,49 @@ export default function RegisterForm() {
     if (buyShoes) total += 600;
     if (buyCap) total += 400;
 
+    // Apply 20% discount if all items are purchased
+    if (buyBottle && buyShoes && buyCap) {
+      total *= 0.8; // Apply 20% discount
+    }
+
     return total;
   };
 
-  // ----------------------------------------------------------------
-
   const registerBtnOnClick = () => {
     let fnameOk = true;
+    let lnameOk = true;
+
     if (fname === "") {
       fnameOk = false;
       setFnameError(true);
     }
 
-    if (fnameOk) {
+    if (lname === "") {
+      lnameOk = false;
+      setLnameError(true);
+    }
+
+    if (fnameOk && lnameOk && agreedToTerms) {
       alert(
         `Registration complete. Please pay money for ${computeTotalPayment().toLocaleString()} THB.`
       );
     }
   };
 
+  const isFormValid = () => {
+    return (
+      fname !== "" &&
+      lname !== "" &&
+      plan !== "" &&
+      gender !== "" &&
+      agreedToTerms
+    );
+  };
+
   return (
     <div className="mx-auto vstack gap-3" style={{ width: "400px" }}>
       <h3 className="text-center fst-italic my-4">Register CMU Marathon 🏃‍♂️</h3>
-      {/* First name & Last name */}
+      
       <div className="d-flex gap-2">
         <div>
           <label className="form-label">First name</label>
@@ -94,7 +113,7 @@ export default function RegisterForm() {
         <div>
           <label className="form-label">Last name</label>
           <input
-            className="form-control"
+            className={"form-control" + (lnameError ? " is-invalid" : "")}
             onChange={inputLnameOnChange}
             value={lname}
           />
@@ -102,7 +121,6 @@ export default function RegisterForm() {
         </div>
       </div>
 
-      {/* Running Plan */}
       <div>
         <label className="form-label">Plan</label>
         <select
@@ -119,7 +137,6 @@ export default function RegisterForm() {
         <div className="invalid-feedback">Please select a Plan</div>
       </div>
 
-      {/* Gender */}
       <div>
         <label className="form-label">Gender</label>
         <div>
@@ -137,13 +154,9 @@ export default function RegisterForm() {
             checked={gender === "female"}
           />
           Female 👩
-          {/* To show error when user did not select gender, */}
-          {/* We just have to render the div below (Not using is-invalid bootstrap class) */}
-          {/* <div className="text-danger">Please select gender</div> */}
         </div>
       </div>
 
-      {/* Extra Items */}
       <div>
         <label className="form-label">Extra Item(s)</label>
         <div>
@@ -179,28 +192,32 @@ export default function RegisterForm() {
         Promotion📢 Buy all items to get 20% Discount
       </div>
 
-      {/* Total Payment */}
       <div>
         Total Payment : {computeTotalPayment().toLocaleString()} THB
-        {/* Render below element conditionally when user get 20% discount */}
-        {/* <span className="text-success d-block">(20% Discounted)</span> */}
+        {buyBottle && buyShoes && buyCap && (
+          <span className="text-success d-block">(20% Discounted)</span>
+        )}
       </div>
 
-      {/* Terms and conditions */}
       <div>
-        <input className="me-2" type="checkbox" />I agree to the terms and
-        conditions
+        <input
+          className="me-2"
+          type="checkbox"
+          checked={agreedToTerms}
+          onChange={(e) => setAgreedToTerms(e.target.checked)}
+        />
+        I agree to the terms and conditions
       </div>
 
-      {/* Register Button */}
       <button
         className="btn btn-success my-2"
         onClick={registerBtnOnClick}
-        //You can embbed a state like below to disabled the button
-        //disabled={isUserAgreed}
+        disabled={!isFormValid()}
       >
         Register
       </button>
     </div>
   );
 }
+
+
